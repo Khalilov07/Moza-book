@@ -1,12 +1,48 @@
-import React from 'react';
-import { Layout, Menu, Button, Input, Avatar } from 'antd';
-import { PlusOutlined, SearchOutlined, BellOutlined, SettingOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Layout, Menu, Modal, Button, Input, Avatar } from 'antd';
+import { PlusOutlined, SearchOutlined, CloseOutlined, BellOutlined, SettingOutlined } from '@ant-design/icons';
 import { Plus } from '../../ui/icons';
 
 
 const { Header, Sider, Content } = Layout;
 
 const Main = () => {
+
+    const [lessons, setLessons] = useState([
+        { title: "", topic: "", additional: "", comments: [] },
+        { title: "", topic: "", additional: "", comments: [] },
+        { title: "", topic: "", additional: "", comments: [] }
+    ]);
+
+    const [selectedLesson, setSelectedLesson] = useState(null);
+    const [newComment, setNewComment] = useState("");
+
+    const handleInputChange = (index, field, value) => {
+        const updatedLessons = [...lessons];
+        updatedLessons[index][field] = value;
+        setLessons(updatedLessons);
+    };
+
+    const handleOpenModal = (index) => {
+        setSelectedLesson(lessons[index]);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedLesson(null);
+        setNewComment("");
+    };
+
+    const handleAddComment = () => {
+        if (newComment.trim() !== "") {
+            setSelectedLesson((prev) => ({
+                ...prev,
+                comments: [...prev.comments, newComment]
+            }));
+            setNewComment("");
+        }
+    };
+
+
     return (
         <Layout style={{ minHeight: '100vh' }}>
 
@@ -66,49 +102,104 @@ const Main = () => {
                     <h2>Доска</h2>
 
                     {/* Уроки */}
-                    <div className="lessons-board" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                        {[...Array(3)].map((_, i) => (
-                            <div key={i} className="lesson" style={{
-                                backgroundColor: '#FFFFFF',
-                                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                                padding: '15px',
-                                borderRadius: '8px',
-                                width: '20%',
-                                minHeight: '300px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center'
-                            }}>
-                                <Input placeholder="Название урока" style={{ backgroundColor: '#DAE3F2', color: '#486578', marginBottom: '10px' }} />
-                                <Input placeholder="Тема урока" style={{ backgroundColor: '#DAE3F2', color: '#486578', marginBottom: '10px' }} />
-                                <Input placeholder="Дополнительные задания" style={{ backgroundColor: '#DAE3F2', color: '#486578', marginBottom: '10px' }} />
 
+                    <div className="lessons-board" style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+                        {lessons.map((lesson, index) => (
+                            <div
+                                key={index}
+                                className="lesson"
+                                style={{
+                                    backgroundColor: "#FFFFFF",
+                                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                    padding: "15px",
+                                    borderRadius: "8px",
+                                    width: "20%",
+                                    minHeight: "300px",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    cursor: "pointer"
+                                }}
+                                onClick={() => handleOpenModal(index)}
+                            >
+                                <Input
+                                    placeholder="Название урока"
+                                    value={lesson.title}
+                                    onChange={(e) => handleInputChange(index, "title", e.target.value)}
+                                    style={{ backgroundColor: "#DAE3F2", color: "#486578", marginBottom: "10px" }}
+                                />
+                                <Input
+                                    placeholder="Тема урока"
+                                    value={lesson.topic}
+                                    onChange={(e) => handleInputChange(index, "topic", e.target.value)}
+                                    style={{ backgroundColor: "#DAE3F2", color: "#486578", marginBottom: "10px" }}
+                                />
+                                <Input
+                                    placeholder="Дополнительные задания"
+                                    value={lesson.additional}
+                                    onChange={(e) => handleInputChange(index, "additional", e.target.value)}
+                                    style={{ backgroundColor: "#DAE3F2", color: "#486578" }}
+                                />
 
                                 <Button
                                     type="text"
-                                    icon={<PlusOutlined style={{ color: '#486578' }} />}
-                                    style={{ color: '#486578', marginTop: '10px', fontWeight: 'bold' }}
+                                    icon={<PlusOutlined style={{ color: "#486578" }} />}
+                                    style={{ color: "#486578", marginTop: "10px", fontWeight: "bold" }}
                                 >
                                     Добавить блок
                                 </Button>
                             </div>
-
                         ))}
+
                         <Button
                             type="primary"
-                            icon={<Plus />}
+                            icon={<PlusOutlined />}
                             block
                             style={{
-                                marginTop: '10px',
-                                width: '12%',
-                                backgroundColor: '#006FFD',
-                                borderColor: '#006FFD',
-                                color: 'white'
+                                marginTop: "10px",
+                                width: "12%",
+                                backgroundColor: "#006FFD",
+                                borderColor: "#006FFD",
+                                color: "white"
                             }}
                         >
                             Новый урок
                         </Button>
+
+                        {/* Модальное окно */}
+                        <Modal
+                            visible={!!selectedLesson}
+                            onCancel={handleCloseModal}
+                            footer={null}
+                            title="Детали урока"
+                            style={{ top: "10%" }}
+                        >
+                            {selectedLesson && (
+                                <div>
+                                    <h3>{selectedLesson.title || "Без названия"}</h3>
+                                    <p><strong>Тема:</strong> {selectedLesson.topic || "Нет темы"}</p>
+                                    <p><strong>Доп. задание:</strong> {selectedLesson.additional || "Нет заданий"}</p>
+
+                                    <hr />
+                                    <h4>Комментарии</h4>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                        <Input
+                                            value={newComment}
+                                            onChange={(e) => setNewComment(e.target.value)}
+                                            placeholder="Напишите комментарий..."
+                                        />
+                                        <Button type="primary" onClick={handleAddComment}>Добавить</Button>
+                                    </div>
+                                    <ul style={{ marginTop: "10px" }}>
+                                        {selectedLesson.comments.map((comment, i) => (
+                                            <li key={i}>{comment}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </Modal>
                     </div>
+
                 </Content>
 
             </Layout>
