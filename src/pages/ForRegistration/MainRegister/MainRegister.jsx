@@ -3,6 +3,8 @@ import { Button, Typography, Row, Col, Form, Input } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, KeyIcon, UserIconRegister } from '../../../ui/icons';
+import { useSelector, useDispatch } from 'react-redux';
+import { login } from '../../../store/authSlice'
 
 const { Title, Paragraph } = Typography;
 
@@ -13,6 +15,8 @@ const MainRegister = () => {
         password: '',
         confirmPassword: '',
     });
+
+    const dispatch = useDispatch()
 
     const [isFormValid, setIsFormValid] = useState(false);
 
@@ -28,9 +32,15 @@ const MainRegister = () => {
         });
     };
 
+    const { user } = useSelector(state => state.auth)
+
     const onFinish = () => {
+        const { name, password } = formData;
+        dispatch(login({ ...user, name, password }));
         navigate('/phone');
     };
+
+
 
     const styles = {
         paragraph: {

@@ -2,18 +2,27 @@ import React, { useState } from 'react';
 import { Button, Typography, Row, Col } from 'antd';
 import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { login } from '../../../store/authSlice'
+import { useSelector } from 'react-redux';
 
 const { Title, Paragraph } = Typography;
 
 const Register = () => {
-    const [selectedRole, setSelectedRole] = useState(null);
 
     const navigate = useNavigate()
-    
+    const dispatch = useDispatch();
+
     const handleSelectRole = (role) => {
-        setSelectedRole(role);
-        navigate("/mainRegister")
+        dispatch(login({ role }));
+        navigate("/mainRegister");
     };
+
+    const { user } = useSelector(state => state.auth) 
+
+    console.log(user);
+
+    console.log();
 
     const styles = {
         paragraph: {
@@ -105,14 +114,14 @@ const Register = () => {
 
                     <Button
                         style={{ ...styles.choiceButton, backgroundImage: "url('/images/userProfile.png')" }}
-                        onClick={() => handleSelectRole('private-teacher')}
+                        onClick={() => handleSelectRole('private_tutor')}
                     >
                         <p> Частный <br /> преподаватель </p>
                         <ArrowRightOutlined />
                     </Button>
                     <Button
                         style={{ ...styles.choiceButton, backgroundImage: "url('/images/landMark.png')" }}
-                        onClick={() => handleSelectRole('resident')}
+                        onClick={() => handleSelectRole('private_tutor')}
                     >
                         Резидент
                         <ArrowRightOutlined />

@@ -4,6 +4,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, CellPhone } from '../../../ui/icons';
 import InputMask from 'react-input-mask';
+import { useSelector } from 'react-redux';
 
 
 const { Title, Paragraph } = Typography;
@@ -34,6 +35,9 @@ const Verify = () => {
         }
     };
 
+    const { user } = useSelector(state => state.auth)
+    console.log(user);
+    
 
     const onFinish = () => {
         navigate('/main');

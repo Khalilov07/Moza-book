@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
-import { Button, Typography, Row, Col, Form, Input } from 'antd';
+import { Button, Typography, Row, Col, Form, Input, notification } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
+
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, CellPhone } from '../../../ui/icons';
-import InputMask from 'react-input-mask'; // Импортируем маску для ввода
+
+import InputMask from 'react-input-mask';
+import { useSelector, useDispatch } from 'react-redux';
+
+import { login } from '../../../store/authSlice'
+
+import { registerTeacher } from '../../../store/authSlice';
 
 
 const { Title, Paragraph } = Typography;
@@ -13,20 +20,46 @@ const PhoneRegister = () => {
         name: '',
     });
 
-    const [phone, setPhone] = useState('');
+    const dispatch = useDispatch()
 
+    const [phone_number, setPhone_number] = useState('');
 
     const [isFormValid, setIsFormValid] = useState(false);
 
     const navigate = useNavigate();
 
+    const user = useSelector(state => state.auth.user);
+
     const handleInputChange = (e) => {
         setIsFormValid(true)
+        setPhone_number(e.target.value)
     };
 
+
     const onFinish = async () => {
-        navigate("/verify")
+        if (!user) {
+            notification.error({ message: "Ошибка: нет данных пользователя" });
+            return;
+        }
+        
+        dispatch(login({ ...user, phone_number }));
+
+        try {
+            const response = await dispatch(registerTeacher({ ...user, phone_number }))
+
+            if (response?.status) {
+                notification.success({ message: "Код выслан" });
+                navigate("/verify");
+            } else {
+                throw new Error("Ошибка регистрации");
+            }
+        } catch (error) {
+            console.error("Ошибка при регистрации:", error);
+            notification.error({ message: "Ошибка регистрации" });
+        }
     };
+
+
 
     const styles = {
         paragraph: {
@@ -117,7 +150,7 @@ const PhoneRegister = () => {
                         <Form.Item label={<span style={{ fontSize: '20px' }}>Номер телефона</span>} name="phone" style={{ fontWeight: 600 }} rules={[{ required: false, message: 'Номер телефона' }]}>
                             <InputMask
                                 mask="+996 (999) 999-999"
-                                value={phone}
+                                value={phone_number}
                                 onChange={handleInputChange}
                             >
                                 {(inputProps) => (

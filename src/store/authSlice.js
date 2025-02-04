@@ -1,10 +1,30 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {api} from "../ui/api";
+
+export const registerTeacher = createAsyncThunk(
+    "auth/registerTeacher",
+    async ({ username, password, email, phone_number, role }, { rejectWithValue }) => {
+      try {
+        const response = await api.post("/teacher_api/register/teacher/", {
+          user: { username, password, email },
+          phone_number,
+          role,
+        });
+        console.log('user', username, password, email, phone_number, role)
+        return response.data;
+      } catch (error) {
+        return rejectWithValue(error.response?.data || "Ошибка регистрации");
+      }
+    }
+);
 
 export const authSlice = createSlice({
   name: "auth",
   initialState: {
     isAuthenticated: false,
     user: null,
+    loading: false,
+    error: null,
   },
   reducers: {
     login: (state, action) => {
@@ -16,8 +36,23 @@ export const authSlice = createSlice({
       state.user = null;
     },
   },
+  extraReducers: (builder) => {
+    builder
+        .addCase(registerTeacher.pending, (state) => {
+          state.loading = true; 
+          state.error = null;
+        })
+        .addCase(registerTeacher.fulfilled, (state, action) => {
+          state.loading = false;
+          state.user = action.payload;
+          state.isAuthenticated = true;
+        })
+        .addCase(registerTeacher.rejected, (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+        });
+  },
 });
 
 export const { login, logout } = authSlice.actions;
-
 export default authSlice.reducer;
