@@ -6,17 +6,32 @@ export const registerTeacher = createAsyncThunk(
     async ({ username, password, email, phone_number, role }, { rejectWithValue }) => {
       try {
         const response = await api.post("/teacher_api/register/teacher/", {
-          user: { username, password, email },
+          user: { username, password, email: "dwadawdwa@gmail.com" },
           phone_number,
           role,
         });
-        console.log('user', username, password, email, phone_number, role)
-        return response.data;
+        return response;
       } catch (error) {
         return rejectWithValue(error.response?.data || "Ошибка регистрации");
       }
     }
 );
+
+export const verifyPhone = createAsyncThunk(
+  "auth/verifyPhone",
+  async ({ phone_number, verification_code }, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/teacher_api/verify-phone/teacher/", {
+        phone_number,
+        verification_code
+      });
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Ошибка регистрации");
+    }
+  }
+);
+
 
 export const authSlice = createSlice({
   name: "auth",

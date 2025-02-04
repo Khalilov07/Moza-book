@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, CellPhone } from '../../../ui/icons';
 import InputMask from 'react-input-mask';
 import { useSelector } from 'react-redux';
+import { verifyPhone } from '../../../store/authSlice';
 
 
 const { Title, Paragraph } = Typography;
@@ -37,10 +38,31 @@ const Verify = () => {
 
     const { user } = useSelector(state => state.auth)
     console.log(user);
-    
 
-    const onFinish = () => {
-        navigate('/main');
+
+    const onFinish = async () => {
+        if (!user) {
+            notification.error({ message: "Ошибка: нет данных пользователя" });
+            navigate("/register")
+            return;
+        }
+
+        dispatch(login({ ...user,  }));
+
+        try {
+            const response = await dispatch(verifyPhone({ phone_number }))
+
+            if (response.payload.data.message) {
+                notification.success({ message: "Код выслан" });
+                navigate("/main");
+            } else {
+                notification.error({ message: "Ошибка" })
+            }
+
+        } catch (error) {
+            console.error("Ошибка при регистрации:", error);
+            notification.error({ message: "Ошибка регистрации" });
+        }
     };
 
     const styles = {

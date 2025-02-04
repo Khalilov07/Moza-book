@@ -5,7 +5,6 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, CellPhone } from '../../../ui/icons';
 
-import InputMask from 'react-input-mask';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { login } from '../../../store/authSlice'
@@ -16,15 +15,12 @@ import { registerTeacher } from '../../../store/authSlice';
 const { Title, Paragraph } = Typography;
 
 const PhoneRegister = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-    });
 
     const dispatch = useDispatch()
 
     const [phone_number, setPhone_number] = useState('');
 
-    const [isFormValid, setIsFormValid] = useState(false);
+    const [isFormValid, setIsFormValid] = useState(true);
 
     const navigate = useNavigate();
 
@@ -39,20 +35,22 @@ const PhoneRegister = () => {
     const onFinish = async () => {
         if (!user) {
             notification.error({ message: "Ошибка: нет данных пользователя" });
+            navigate("/register")
             return;
         }
-        
+
         dispatch(login({ ...user, phone_number }));
 
         try {
             const response = await dispatch(registerTeacher({ ...user, phone_number }))
 
-            if (response?.status) {
+            if (response.payload.data.message) {
                 notification.success({ message: "Код выслан" });
                 navigate("/verify");
             } else {
-                throw new Error("Ошибка регистрации");
+                notification.error({ message: "Ошибка" })
             }
+
         } catch (error) {
             console.error("Ошибка при регистрации:", error);
             notification.error({ message: "Ошибка регистрации" });
@@ -148,20 +146,13 @@ const PhoneRegister = () => {
 
                     <Form name="registration-form" onFinish={onFinish} layout="vertical" style={{ width: '70%' }}>
                         <Form.Item label={<span style={{ fontSize: '20px' }}>Номер телефона</span>} name="phone" style={{ fontWeight: 600 }} rules={[{ required: false, message: 'Номер телефона' }]}>
-                            <InputMask
-                                mask="+996 (999) 999-999"
-                                value={phone_number}
+                            <Input
+                             
+                                prefix={<div style={{ color: '#8D8D8D', paddingRight: '15px' }}><CellPhone /></div>}
+                                placeholder="Введите номер телефона"
+                                style={styles.input}
                                 onChange={handleInputChange}
-                            >
-                                {(inputProps) => (
-                                    <Input
-                                        {...inputProps}
-                                        prefix={<div style={{ color: '#8D8D8D', paddingRight: '15px' }}><CellPhone /></div>}
-                                        placeholder="Введите номер телефона"
-                                        style={styles.input}
-                                    />
-                                )}
-                            </InputMask>
+                            />
                         </Form.Item>
 
                         <Form.Item>

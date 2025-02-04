@@ -36,7 +36,7 @@ const MainRegister = () => {
 
     const onFinish = () => {
         const { name, password } = formData;
-        dispatch(login({ ...user, name, password }));
+        dispatch(login({ ...user, username: name, password }));
         navigate('/phone');
     };
 
