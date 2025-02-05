@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Button, Typography, Row, Col, Form, Input } from 'antd';
+import { Button, Typography, Row, Col, Form, Input, notification } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, KeyIcon, UserIconRegister } from '../../../ui/icons';
+import {useDispatch} from "react-redux";
+import {loginTeacher} from "../../../store/authSlice";
 
 const { Title, Paragraph } = Typography;
 
@@ -13,7 +15,8 @@ const Login = () => {
         password: '',
         confirmPassword: '',
     });
-
+    const [form] = Form.useForm();
+    const dispatch = useDispatch()
     const [isFormValid, setIsFormValid] = useState(true);
 
     const navigate = useNavigate();
@@ -29,9 +32,27 @@ const Login = () => {
         });
     };
 
-    const onFinish = () => {
-        navigate('/main');
+    const onFinish = async (values) => {
+        if (!values.username || !values.password) {
+            notification.error({ message: "Ошибка: введите логин и пароль" });
+            return;
+        }
+
+        try {
+            const response = await dispatch(loginTeacher(values));
+
+            if (response.payload) {
+                notification.success({ message: "Вы успешно вошли!" });
+                navigate("/main");
+            } else {
+                notification.error({ message: "Ошибка входа" });
+            }
+        } catch (error) {
+            console.error("Ошибка при входе:", error);
+            notification.error({ message: "Ошибка авторизации" });
+        }
     };
+
 
     const styles = {
         label: {
@@ -116,8 +137,8 @@ const Login = () => {
                         Вход
                     </Title>
 
-                    {/* Форма для отправки данных */}
                     <Form
+                        form={form}
                         name="registration-form"
                         onFinish={onFinish}
                         layout="vertical"
@@ -126,7 +147,7 @@ const Login = () => {
                     >
                         <Form.Item
                             label={<span style={{ fontSize: '20px' }}>Логин</span>}
-                            name="name"
+                            name="username"
                             style={{ fontWeight: 600 }}
                             rules={[{ required: false, message: 'Введите логин' }]}
                         >
