@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { Button, Typography, Row, Col, Form, Input } from 'antd';
+import { Button, Typography, Row, Col, Form, Input, notification } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, CellPhone } from '../../../ui/icons';
-import InputMask from 'react-input-mask';
-import { useSelector } from 'react-redux';
+import { ArrowRight } from '../../../ui/icons';
+import { useDispatch, useSelector } from 'react-redux';
 import { verifyPhone } from '../../../store/authSlice';
+import {useForm} from "antd/es/form/Form";
 
 
 const { Title, Paragraph } = Typography;
@@ -14,12 +14,13 @@ const Verify = () => {
     const [code, setCode] = useState(['', '', '', '']);
     const inputsRef = [useRef(null), useRef(null), useRef(null), useRef(null)];
     const navigate = useNavigate();
-
+    const dispatch = useDispatch();
     const [isFormValid, setIsFormValid] = useState(false)
+    const [form] = Form.useForm();
 
     const handleChange = (index, e) => {
         setIsFormValid(true)
-        const value = e.target.value.replace(/\D/g, ''); // Оставляем только цифры
+        const value = e.target.value.replace(/\D/g, '');
         if (value.length <= 1) {
             const newCode = [...code];
             newCode[index] = value;
@@ -37,31 +38,30 @@ const Verify = () => {
     };
 
     const { user } = useSelector(state => state.auth)
-    console.log(user);
 
 
     const onFinish = async () => {
-        if (!user) {
+        if (!user?.phone_number) {
             notification.error({ message: "Ошибка: нет данных пользователя" });
             navigate("/register")
             return;
         }
-
-        dispatch(login({ ...user,  }));
-
+        if (!code?.length) {
+            notification.error({ message: "Напишите код" });
+            return;
+        }
         try {
-            const response = await dispatch(verifyPhone({ phone_number }))
-
-            if (response.payload.data.message) {
+            const response = await dispatch(verifyPhone({ phone_number:user?.phone_number,verification_code:code.join('') }));
+            if (response.payload == "") {
                 notification.success({ message: "Код выслан" });
                 navigate("/main");
             } else {
-                notification.error({ message: "Ошибка" })
+                notification.error({ message: response.payload || "Ошибка" })
             }
 
         } catch (error) {
-            console.error("Ошибка при регистрации:", error);
-            notification.error({ message: "Ошибка регистрации" });
+            console.log("Ошибка при регистрации:", error);
+            notification.error({ message: "Ошибка регистрации 2" });
         }
     };
 
@@ -134,7 +134,7 @@ const Verify = () => {
                         Введите 4-х значный код из SMS
                     </Paragraph>
 
-                    <Form name="registration-form" onFinish={onFinish} layout="vertical" style={{ width: '70%' }}>
+                    <Form name="registration-form" form={form} onFinish={onFinish} layout="vertical" style={{ width: '70%' }}>
                         <Form.Item>
                             <div style={{ display: 'flex', justifyContent: 'start', gap: '10px' }}>
                                 {code.map((num, index) => (

@@ -27,7 +27,7 @@ export const verifyPhone = createAsyncThunk(
       });
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Ошибка регистрации");
+      return rejectWithValue(error?.response?.data?.error || "Ошибка регистрации");
     }
   }
 );
@@ -59,7 +59,6 @@ export const authSlice = createSlice({
         })
         .addCase(registerTeacher.fulfilled, (state, action) => {
           state.loading = false;
-          state.user = action.payload;
           state.isAuthenticated = true;
         })
         .addCase(registerTeacher.rejected, (state, action) => {
