@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Button, Typography, Row, Col, Form, Input } from 'antd';
+import React, {useEffect, useState} from 'react';
+import {Button, Typography, Row, Col, Form, Input, notification} from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, KeyIcon, Lock, UserIconRegister } from '../../../ui/icons';
+import {useDispatch, useSelector} from "react-redux";
+import { resetPasswordTeacher} from "../../../store/authSlice";
 
 const { Title, Paragraph } = Typography;
 
@@ -12,11 +14,18 @@ const Login = () => {
         password: '',
         confirmPassword: '',
     });
+    const {phone} = useSelector(state => state.auth);
+    const dispatch = useDispatch()
+    const [form] = Form.useForm();
 
     const [isFormValid, setIsFormValid] = useState(false);
 
     const navigate = useNavigate();
-
+    useEffect(() => {
+        if(!phone.length){
+            navigate("/")
+        }
+    }, [phone]);
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setIsFormValid(true);
@@ -27,8 +36,26 @@ const Login = () => {
         });
     };
 
-    const onFinish = () => {
-        navigate('/main');
+    const onFinish = async (values) => {
+        if (!values.new_password) {
+            notification.error({ message: "Ошибка: введите код" });
+            return;
+        }else if (!values.new_password) {
+            notification.error({ message: "Ошибка: введите новый пароль" });
+            return;
+        }
+        try {
+            const response = await dispatch(resetPasswordTeacher({...values,phone_number:phone}));
+            if (!response.payload.error) {
+                notification.success({ message: "Пароль изменен" });
+                // navigate("/main");
+            } else {
+                notification.error({ message: response.payload.error });
+            }
+        } catch (error) {
+            console.error("Ошибка при входе:", error);
+            notification.error({ message: "Ошибка" });
+        }
     };
 
     const styles = {
@@ -127,34 +154,31 @@ const Login = () => {
                         name="registration-form"
                         onFinish={onFinish}
                         layout="vertical"
+                        form={form}
                         style={styles.form}
                         initialValues={{ remember: true }}
                     >
                         <Form.Item
-                            label={<span style={{ fontSize: '20px' }}>Введите новый пароль</span>}
-                            name="password"
+                            label={<span style={{ fontSize: '20px' }}>Введите код</span>}
+                            name="reset_code"
                             style={{ fontWeight: 600 }}
                             rules={[{ required: false, message: 'Введите новый пароль' }]}
                         >
-                            <Input.Password
-                                name="password"
-                                value={formData.password}
+                            <Input
                                 onChange={handleInputChange}
-                                placeholder="Введите новый пароль"
+                                placeholder="Введите код"
                                 style={styles.input}
                                 prefix={<span style={styles.inputIcon}><Lock /></span>}
                             />
                         </Form.Item>
 
                         <Form.Item
-                            label={<span style={{ fontSize: '20px' }}>Подтвердите пароль</span>}
-                            name="password"
+                            label={<span style={{ fontSize: '20px' }}>Новый пароль</span>}
+                            name="new_password"
                             style={{ fontWeight: 600 }}
                             rules={[{ required: false, message: 'Введите новый пароль повторно' }]}
                         >
                             <Input.Password
-                                name="password"
-                                value={formData.password}
                                 onChange={handleInputChange}
                                 placeholder="Введите новый пароль повторно"
                                 style={styles.input}

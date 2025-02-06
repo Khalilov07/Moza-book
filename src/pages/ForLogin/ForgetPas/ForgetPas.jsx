@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { Button, Typography, Row, Col, Form, Input } from 'antd';
+import React, {useEffect, useState} from 'react';
+import { Button, Typography, Row, Col, Form, Input, notification} from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, CellPhone } from '../../../ui/icons';
-import InputMask from 'react-input-mask';
+import {forgotPasswordTeacher} from "../../../store/authSlice";
+import {useDispatch} from "react-redux";
+import { forgotPassword } from '../../../store/authSlice'
 
 
 const { Title, Paragraph } = Typography;
@@ -14,7 +16,8 @@ const ForgetPas = () => {
     });
 
     const [phone, setPhone] = useState('');
-
+    const [form] = Form.useForm();
+    const dispatch = useDispatch()
 
     const [isFormValid, setIsFormValid] = useState(false);
 
@@ -24,8 +27,25 @@ const ForgetPas = () => {
         setIsFormValid(true)
     };
 
-    const onFinish = async () => {
-        navigate("/sms")
+    const onFinish = async (values) => {
+        if (!values.phone_number) {
+            notification.error({ message: "Ошибка: введите номер телефона" });
+            return;
+        }
+
+        try {
+            const response = await dispatch(forgotPasswordTeacher(values));
+            if (!response.payload.error) {
+                notification.success({ message: "Код отправлен!" });
+                dispatch(forgotPassword(values.phone_number))
+                navigate("/newpas");
+            } else {
+                notification.error({ message: response.payload.error });
+            }
+        } catch (error) {
+            console.error("Ошибка при входе:", error);
+            notification.error({ message: "Ошибка" });
+        }
     };
 
     const styles = {
@@ -113,27 +133,21 @@ const ForgetPas = () => {
                         Введите свой номер телефона, для <br /> того чтобы восстановить пароль
                     </Paragraph>
 
-                    <Form name="registration-form" onFinish={onFinish} layout="vertical" style={{ width: '70%' }}>
-                        <Form.Item label={<span style={{ fontSize: '20px' }}>Номер телефона</span>} name="phone" style={{ fontWeight: 600 }} rules={[{ required: false, message: 'Номер телефона' }]}>
-                            <InputMask
-                                mask="+996 (999) 999-999"
-                                value={phone}
-                                onChange={handleInputChange}
-                            >
-                                {(inputProps) => (
+                    <Form requiredMark={false} name="registration-form" form={form} onFinish={onFinish} layout="vertical" style={{ width: '70%' }}>
+                        <Form.Item label={<span style={{ fontSize: '20px' }}>Номер телефона</span>} name="phone_number" style={{ fontWeight: 600 }} rules={[{ required: true, message: 'Номер телефона' }]}>
+
                                     <Input
-                                        {...inputProps}
                                         prefix={<div style={{ color: '#8D8D8D', paddingRight: '15px' }}><CellPhone /></div>}
                                         placeholder="Введите номер телефона"
                                         style={styles.input}
+                                        // onChange={handleInputChange}
+
                                     />
-                                )}
-                            </InputMask>
+
                         </Form.Item>
 
                         <Form.Item>
                             <Button
-                                disabled={!isFormValid}
                                 type="primary"
                                 htmlType="submit"
                                 style={styles.button}
