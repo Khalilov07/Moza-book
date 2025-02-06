@@ -44,7 +44,7 @@ const Main = () => {
                     : lesson
             );
             setLessons(updatedLessons);
-            setNewComment(""); // очищаем поле ввода комментария
+            setNewComment(""); 
         }
     };
 
@@ -79,7 +79,8 @@ const Main = () => {
 
     const handleAddClass = () => {
         console.log("Новый класс:", newClass);
-        handleCloseClassModal();
+        classes.concat(newClass)
+        setIsClassModalVisible(false)
     };
 
 
