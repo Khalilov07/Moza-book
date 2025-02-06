@@ -17,6 +17,7 @@ export const registerTeacher = createAsyncThunk(
     }
 );
 
+
 export const verifyPhone = createAsyncThunk(
   "auth/verifyPhone",
   async ({ phone_number, verification_code }, { rejectWithValue }) => {

@@ -7,7 +7,7 @@ export const api = axios.create({
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Accept-Language': '',
-        'Authorization': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMzEyNTAxLCJpYXQiOjE3Mzg3NzY1MDEsImp0aSI6IjFiYmI1NDY0ODAzNTQwOTg5NDBmMWJiYTk0MjRiOWZhIiwidXNlcl9pZCI6OX0.YCi7OzlAIG5R_LIrbhmG5IQT5Vq7uMeqFZRxG-OVJws"
+        'Authorization': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMzE0NzE2LCJpYXQiOjE3Mzg3Nzg3MTYsImp0aSI6IjI2MDlkNGRhNzZjMDQxYzBiZDA5YjI4NzI5NzQ2YmVlIiwidXNlcl9pZCI6OX0.RbouqxKSA0e6Djk_4A1Lcl7S3YipWLlqFyXg2s-jX3Y"
     }
 
 })

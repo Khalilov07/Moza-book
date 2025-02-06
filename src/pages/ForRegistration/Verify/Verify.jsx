@@ -58,7 +58,6 @@ const Verify = () => {
             } else {
                 notification.error({ message: response.payload || "Ошибка" })
             }
-
         } catch (error) {
             console.log("Ошибка при регистрации:", error);
             notification.error({ message: "Ошибка регистрации 2" });

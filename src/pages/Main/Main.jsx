@@ -1,21 +1,45 @@
 import React, { useState } from 'react';
-import { Layout, Menu, Modal, Button, Input, Avatar } from 'antd';
-import { PlusOutlined, SearchOutlined, CloseOutlined, BellOutlined, SettingOutlined } from '@ant-design/icons';
-import { Plus } from '../../ui/icons';
-
+import { Layout, Menu, Modal, Button, Input, Avatar, Upload, List, Divider } from 'antd';
+import { PlusOutlined, SearchOutlined, CloseOutlined, BellOutlined, SettingOutlined, UploadOutlined, UserOutlined } from '@ant-design/icons';
 
 const { Header, Sider, Content } = Layout;
 
 const Main = () => {
-
     const [lessons, setLessons] = useState([
-        { title: "", topic: "", additional: "", comments: [] },
-        { title: "", topic: "", additional: "", comments: [] },
-        { title: "", topic: "", additional: "", comments: [] }
+        { title: "", topic: "", additional: "", blocks: [], comments: [] },
+        { title: "", topic: "", additional: "", blocks: [], comments: [] },
+        { title: "", topic: "", additional: "", blocks: [], comments: [] }
     ]);
 
     const [selectedLesson, setSelectedLesson] = useState(null);
     const [newComment, setNewComment] = useState("");
+    const [isClassModalVisible, setIsClassModalVisible] = useState(false);
+    const [isLessonModalVisible, setIsLessonModalVisible] = useState(false);
+    const [newLesson, setNewLesson] = useState({ title: "", topic: "" });
+    const [newClass, setNewClass] = useState({ name: "", image: "" });
+
+    const handleOpenLessonModalBlock = (lesson) => {
+        setSelectedLesson(lesson);
+        setIsLessonModalVisible(true);
+    };
+
+    const handleCloseLessonModalBlock = () => {
+        setIsLessonModalVisible(false);
+        setSelectedLesson(null);
+        setNewComment("");
+    };
+
+    const handleAddComment = () => {
+        if (newComment) {
+            const updatedLessons = lessons.map(lesson => 
+                lesson === selectedLesson 
+                ? { ...lesson, comments: [...lesson.comments, newComment] } 
+                : lesson
+            );
+            setLessons(updatedLessons);
+            setNewComment(""); // очищаем поле ввода комментария
+        }
+    };
 
     const handleInputChange = (index, field, value) => {
         const updatedLessons = [...lessons];
@@ -23,46 +47,59 @@ const Main = () => {
         setLessons(updatedLessons);
     };
 
-    const handleOpenModal = (index) => {
-        setSelectedLesson(lessons[index]);
+    const handleOpenLessonModal = () => {
+        setIsClassModalVisible(true);
     };
 
-    const handleCloseModal = () => {
-        setSelectedLesson(null);
-        setNewComment("");
+    const handleCloseLessonModal = () => {
+        setIsClassModalVisible(false);
+        setNewLesson({ title: "", topic: "" });
     };
 
-    const handleAddComment = () => {
-        if (newComment.trim() !== "") {
-            setSelectedLesson((prev) => ({
-                ...prev,
-                comments: [...prev.comments, newComment]
-            }));
-            setNewComment("");
+    const handleAddLesson = () => {
+        setLessons([...lessons, { ...newLesson, blocks: [], comments: [] }]);
+        handleCloseLessonModal();
+    };
+
+    const handleOpenClassModal = () => {
+        setIsClassModalVisible(true);
+    };
+
+    const handleCloseClassModal = () => {
+        setIsClassModalVisible(false);
+        setNewClass({ name: "", image: "" });
+    };
+
+    const handleAddClass = () => {
+        console.log("Новый класс:", newClass);
+        handleCloseClassModal();
+    };
+
+    const handleAddBlock = (index) => {
+        setLessons(prevLessons =>
+            prevLessons.map((lesson, i) =>
+                i === index ? { ...lesson, blocks: [...lesson.blocks, `Блок ${lesson.blocks.length + 1}`] } : lesson
+            )
+        );
+    };
+    const styles = {
+        input: {
+            margin: '10px 0',
+            background: '#DAE3F2',
+            padding: '10px 16px'
         }
-    };
-
+    }
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-
             <Sider width={250} style={{ background: '#006FFD', padding: '20px', color: 'white' }}>
                 <h2 style={{ color: 'white' }}>Ваши классы</h2>
                 <hr style={{ borderColor: 'white' }} />
-                <div className="class-list">
-                    <div className="class-item">
-                        <img src="/images/class.png" alt="Class" className="class-img" />
-                        <span>Класс 10А</span>
-                    </div>
-                </div>
             </Sider>
 
             <Layout>
-
                 <Header className="header" style={{ backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px' }}>
-                    <Button type="primary" >
-                        Добавить класс
-                    </Button>
+                    <Button type="primary" onClick={handleOpenClassModal}>Добавить класс</Button>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                         <Input placeholder="Поиск" prefix={<SearchOutlined />} style={{ width: 200 }} />
                         <BellOutlined style={{ fontSize: '20px', cursor: 'pointer' }} />
@@ -71,138 +108,74 @@ const Main = () => {
                     </div>
                 </Header>
 
-                <Content style={{ padding: '20px', backgroundColor: '#F4F4F4', minHeight: '100vh' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h1 style={{ margin: 0 }}>Класс 10А</h1>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-                            <a href="#" style={{ color: '#006FFD', textDecoration: 'underline', fontWeight: 'bold' }}>
-                                Список учащихся
-                            </a>
-                            <div className="students-list" style={{ display: 'flex', marginTop: '10px' }}>
-                                {[...Array(5)].map((_, i) => (
-                                    <Avatar
-                                        key={i}
-                                        src={`/images/student${i + 1}.jpg`}
-                                        className="student-avatar"
-                                        style={{
-                                            position: 'relative',
-                                            left: `-${i * 10}px`, // Наложение
-                                            border: '2px solid white'
-                                        }}
-                                    />
-                                ))}
+                <Layout style={{ minHeight: '100vh' }}>
+                    <Layout>
+                        <Header className="header" style={{ backgroundColor: '#F4F4F4', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                <h2 style={{ margin: 0, fontWeight: 'bold' }}>Название класса</h2>
                             </div>
-                        </div>
-                    </div>
-
-
-                    <hr style={{ margin: '20px 0' }} />
-
-                    {/* Доска */}
-                    <h2>Доска</h2>
-
-                    {/* Уроки */}
-
-                    <div className="lessons-board" style={{ display: "flex", gap: "15px", alignItems: "center" }}>
-                        {lessons.map((lesson, index) => (
-                            <div
-                                key={index}
-                                className="lesson"
-                                style={{
-                                    backgroundColor: "#FFFFFF",
-                                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                    padding: "15px",
-                                    borderRadius: "8px",
-                                    width: "20%",
-                                    minHeight: "300px",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    cursor: "pointer"
-                                }}
-                                onClick={() => handleOpenModal(index)}
-                            >
-                                <Input
-                                    placeholder="Название урока"
-                                    value={lesson.title}
-                                    onChange={(e) => handleInputChange(index, "title", e.target.value)}
-                                    style={{ backgroundColor: "#DAE3F2", color: "#486578", marginBottom: "10px" }}
-                                />
-                                <Input
-                                    placeholder="Тема урока"
-                                    value={lesson.topic}
-                                    onChange={(e) => handleInputChange(index, "topic", e.target.value)}
-                                    style={{ backgroundColor: "#DAE3F2", color: "#486578", marginBottom: "10px" }}
-                                />
-                                <Input
-                                    placeholder="Дополнительные задания"
-                                    value={lesson.additional}
-                                    onChange={(e) => handleInputChange(index, "additional", e.target.value)}
-                                    style={{ backgroundColor: "#DAE3F2", color: "#486578" }}
-                                />
-
-                                <Button
-                                    type="text"
-                                    icon={<PlusOutlined style={{ color: "#486578" }} />}
-                                    style={{ color: "#486578", marginTop: "10px", fontWeight: "bold" }}
-                                >
-                                    Добавить блок
-                                </Button>
-                            </div>
-                        ))}
-
-                        <Button
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            block
-                            style={{
-                                marginTop: "10px",
-                                width: "12%",
-                                backgroundColor: "#006FFD",
-                                borderColor: "#006FFD",
-                                color: "white"
-                            }}
-                        >
-                            Новый урок
-                        </Button>
-
-                        {/* Модальное окно */}
-                        <Modal
-                            visible={!!selectedLesson}
-                            onCancel={handleCloseModal}
-                            footer={null}
-                            title="Детали урока"
-                            style={{ top: "10%" }}
-                        >
-                            {selectedLesson && (
+                            <Avatar.Group maxCount={3} style={{ display: 'flex', gap: '30px' }}>
                                 <div>
-                                    <h3>{selectedLesson.title || "Без названия"}</h3>
-                                    <p><strong>Тема:</strong> {selectedLesson.topic || "Нет темы"}</p>
-                                    <p><strong>Доп. задание:</strong> {selectedLesson.additional || "Нет заданий"}</p>
-
-                                    <hr />
-                                    <h4>Комментарии</h4>
-                                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                        <Input
-                                            value={newComment}
-                                            onChange={(e) => setNewComment(e.target.value)}
-                                            placeholder="Напишите комментарий..."
-                                        />
-                                        <Button type="primary" onClick={handleAddComment}>Добавить</Button>
-                                    </div>
-                                    <ul style={{ marginTop: "10px" }}>
-                                        {selectedLesson.comments.map((comment, i) => (
-                                            <li key={i}>{comment}</li>
-                                        ))}
-                                    </ul>
+                                    <a href="#" style={{ color: '#006FFD' }}>Список участников</a>
                                 </div>
-                            )}
-                        </Modal>
-                    </div>
+                                <div>
+                                    <Avatar src="/images/user1.jpg" />
+                                    <Avatar src="/images/user2.jpg" />
+                                    <Avatar src="/images/user3.jpg" />
+                                </div>
+                            </Avatar.Group>
+                        </Header>
 
-                </Content>
-
+                        <Content style={{ padding: '20px', backgroundColor: '#F4F4F4' }}>
+                            <hr />
+                            <h2 style={{ fontSize: '24px' }}>Доска</h2>
+                            <div>
+                                <div className="lessons-board" style={{ display: "flex", gap: "15px", alignItems: "center", flexWrap: "wrap", flex: 1 }}>
+                                    {lessons.map((lesson, index) => (
+                                        <div key={index} className="lesson" style={{ backgroundColor: "#FFFFFF", padding: "15px", borderRadius: "8px", width: "250px", minHeight: "320px", cursor: "pointer", boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)", display: 'flex', alignItems: 'center', flexDirection: 'column' }} onClick={handleOpenLessonModalBlock}>
+                                            <Input placeholder="Название урока" value={lesson.title} onChange={(e) => handleInputChange(index, 'title', e.target.value)} style={styles.input} />
+                                            <Input placeholder="Тема урока" value={lesson.topic} onChange={(e) => handleInputChange(index, 'topic', e.target.value)} style={styles.input} />
+                                            <Button type="text" icon={<PlusOutlined />} onClick={() => handleAddBlock(index)}>Добавить блок</Button>
+                                        </div>
+                                    ))}
+                                    <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenLessonModal} style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Новый урок</Button>
+                                </div>
+                            </div>
+                        </Content>
+                    </Layout>
+                </Layout>
             </Layout>
+
+            <Modal visible={isLessonModalVisible} onCancel={handleCloseLessonModal} footer={null} title={selectedLesson?.title}>
+                <h3>Описание:</h3>
+                <p>{selectedLesson?.description}</p>
+                <Button type="link" onClick={() => alert('Показать полностью!')}>Показать полностью</Button>
+                <Divider />
+                <h4>Комментарии:</h4>
+                <List
+                    dataSource={selectedLesson?.comments || []}
+                    renderItem={(comment, index) => <List.Item key={index}>{comment}</List.Item>}
+                />
+                <Input
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Оставьте комментарий"
+                    style={{ marginTop: '10px' }}
+                />
+                <Button type="primary" onClick={handleAddComment} style={{ marginTop: '10px' }}>Оставить комментарий</Button>
+            </Modal>
+
+            <Modal visible={isClassModalVisible} onCancel={handleCloseClassModal} onOk={handleAddClass} title="Добавить класс">
+                <Input placeholder="Название класса" value={newClass.name} onChange={(e) => setNewClass({ ...newClass, name: e.target.value })} />
+                <Upload beforeUpload={() => false} onChange={(info) => setNewClass({ ...newClass, image: info.file.name })}>
+                    <Button style={{ margin: '10px 0' }} icon={<UploadOutlined />}>Загрузить фото</Button>
+                </Upload>
+            </Modal>
+
+            <Modal visible={isLessonModalVisible} onCancel={handleCloseLessonModal} onOk={handleAddLesson} title="Добавить урок">
+                <Input placeholder="Название урока" value={newLesson.title} onChange={(e) => setNewLesson({ ...newLesson, title: e.target.value })} />
+                <Input placeholder="Тема урока" value={newLesson.topic} onChange={(e) => setNewLesson({ ...newLesson, topic: e.target.value })} style={{ marginTop: "10px" }} />
+            </Modal>
         </Layout>
     );
 };
