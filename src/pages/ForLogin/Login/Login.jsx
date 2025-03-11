@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Button, Typography, Row, Col, Form, Input, notification } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
@@ -20,7 +20,12 @@ const Login = () => {
     const [isFormValid, setIsFormValid] = useState(true);
 
     const navigate = useNavigate();
-
+    useEffect(() => {
+        if(localStorage.getItem("MAZA_BOOK")){
+            navigate("/main")
+        }
+    }, []);
+    console.log(localStorage.getItem("MAZA_BOOK"))
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setIsFormValid(false)

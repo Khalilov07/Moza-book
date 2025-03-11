@@ -21,8 +21,12 @@ const ForgetPas = () => {
 
     const [isFormValid, setIsFormValid] = useState(false);
 
-    const navigate = useNavigate();
-
+    const navigate = useNavigate()
+    useEffect(() => {
+        if(localStorage.getItem("MAZA_BOOK")){
+            navigate("/main")
+        }
+    }, []);
     const handleInputChange = (e) => {
         setIsFormValid(true)
     };

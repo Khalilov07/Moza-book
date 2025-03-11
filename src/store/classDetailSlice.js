@@ -24,6 +24,31 @@ export const updateClassroomDetail = createAsyncThunk(
         }
     }
 );
+export const postClassroomTaks = createAsyncThunk(
+    "classDetail/postClassroomTaks",
+    async ({ classroom_id, column_id}, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`/kanban_board_api/classrooms/${classroom_id}/columns/${column_id}/tasks/`, {title:"sadsagf",status: {
+                    name: "string"
+                }});
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || "Ошибка при обновлении данных о классе");
+        }
+    }
+);
+export const postClassroomColumn = createAsyncThunk(
+    "classDetail/postClassroomColumn",
+    async ({ classroom_id, column_id,data}, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`/kanban_board_api/classrooms/${classroom_id}/columns/`, data)
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || "Ошибка при обновлении данных о классе");
+        }
+    }
+);
+
 
 const classDetailSlice = createSlice({
     name: "classDetail",
@@ -51,7 +76,6 @@ const classDetailSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-
             .addCase(updateClassroomDetail.pending, (state) => {
                 state.loading = true;
                 state.error = null;

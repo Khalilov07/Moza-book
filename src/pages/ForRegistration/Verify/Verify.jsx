@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import { Button, Typography, Row, Col, Form, Input, notification } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
@@ -17,7 +17,11 @@ const Verify = () => {
     const dispatch = useDispatch();
     const [isFormValid, setIsFormValid] = useState(false)
     const [form] = Form.useForm();
-
+    useEffect(() => {
+        if(localStorage.getItem("MAZA_BOOK")){
+            navigate("/main")
+        }
+    }, []);
     const handleChange = (index, e) => {
         setIsFormValid(true)
         const value = e.target.value.replace(/\D/g, '');

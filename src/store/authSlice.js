@@ -92,6 +92,8 @@ export const authSlice = createSlice({
         logout: (state) => {
             state.isAuthenticated = false;
             state.user = null;
+            console.log(123)
+            localStorage.removeItem("MAZA_BOOK")
         },
         forgotPassword: (state,action) => {
             state.phone = action.payload;

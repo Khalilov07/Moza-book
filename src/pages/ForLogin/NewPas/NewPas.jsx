@@ -14,13 +14,18 @@ const Login = () => {
         password: '',
         confirmPassword: '',
     });
+    const navigate = useNavigate()
+    useEffect(() => {
+        if(localStorage.getItem("MAZA_BOOK")){
+            navigate("/main")
+        }
+    }, []);
     const {phone} = useSelector(state => state.auth);
     const dispatch = useDispatch()
     const [form] = Form.useForm();
 
     const [isFormValid, setIsFormValid] = useState(false);
 
-    const navigate = useNavigate();
     useEffect(() => {
         if(!phone.length){
             navigate("/")

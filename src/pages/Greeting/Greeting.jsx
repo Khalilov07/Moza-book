@@ -1,11 +1,18 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { Button, Typography, Row, Col } from 'antd';
-import { Link } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { ArrowRight, ArrowRightBlue, Compass, Graduation, Pencil02 } from '../../ui/icons';
+import {getClassrooms} from "../../store/classSlice";
 
 const { Title, Paragraph } = Typography;
 
 const GreetignPage = () => {
+    const navigate = useNavigate()
+    useEffect(() => {
+        if(localStorage.getItem("MAZA_BOOK")){
+            navigate("/main")
+        }
+    }, []);
     const styles = {
         paragraph: {
             fontSize: '15px',

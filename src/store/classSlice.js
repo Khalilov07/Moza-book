@@ -15,9 +15,9 @@ export const getClassrooms = createAsyncThunk(
 
 export const createClassroom = createAsyncThunk(
     "class/createClassroom",
-    async (classroomData, { rejectWithValue }) => {
+    async (name, { rejectWithValue }) => {
         try {
-            const response = await api.post("/kanban_board_api/classrooms/create/", classroomData);
+            const response = await api.post("/kanban_board_api/classrooms/create/", {name:name});
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data || "Ошибка при создании класса");

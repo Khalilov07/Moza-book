@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Button, Typography, Row, Col, Form, Input } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
@@ -9,7 +9,7 @@ import { login } from '../../../store/authSlice'
 const { Title, Paragraph } = Typography;
 
 const MainRegister = () => {
-    // Состояние для хранения данных формы
+
     const [formData, setFormData] = useState({
         name: '',
         password: '',
@@ -21,7 +21,11 @@ const MainRegister = () => {
     const [isFormValid, setIsFormValid] = useState(false);
 
     const navigate = useNavigate();
-
+    useEffect(() => {
+        if(localStorage.getItem("MAZA_BOOK")){
+            navigate("/main")
+        }
+    }, []);
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevData) => {

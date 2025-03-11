@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Button, Typography, Row, Col } from 'antd';
 import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
@@ -10,9 +10,13 @@ const { Title, Paragraph } = Typography;
 
 const Register = () => {
 
-    const navigate = useNavigate()
     const dispatch = useDispatch();
-
+    const navigate = useNavigate()
+    useEffect(() => {
+        if(localStorage.getItem("MAZA_BOOK")){
+            navigate("/main")
+        }
+    }, []);
     const handleSelectRole = (role) => {
         dispatch(login({ role }));
         navigate("/mainRegister");

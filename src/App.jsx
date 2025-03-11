@@ -12,6 +12,7 @@ import NewPas from './pages/ForLogin/NewPas/NewPas'
 import Sms from './pages/ForLogin/Sms/Sms';
 
 const App = () => {
+
   return (
     <Router>
       <Routes>

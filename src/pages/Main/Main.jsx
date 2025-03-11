@@ -1,15 +1,32 @@
-import React, { useState } from 'react';
-import { Layout, Menu, Modal, Button, Input, Avatar, Upload, List, Divider } from 'antd';
-import { PlusOutlined, SearchOutlined, CloseOutlined, BellOutlined, SettingOutlined, UploadOutlined, UserOutlined } from '@ant-design/icons';
+import React, {useEffect, useState} from 'react';
+import { Layout, Modal, Button, Input, Avatar, notification } from 'antd';
+import { PlusOutlined, SearchOutlined , BellOutlined, SettingOutlined} from '@ant-design/icons';
+import {useNavigate} from "react-router-dom";
+import {createClassroom, getClassrooms} from "../../store/classSlice";
+import {useDispatch, useSelector} from "react-redux";
+import {logout} from "../../store/authSlice";
+import {getClassroomDetail, postClassroomColumn, postClassroomTaks} from "../../store/classDetailSlice";
 
 const { Header, Sider, Content } = Layout;
 
 const Main = () => {
-    const [lessons, setLessons] = useState([
-        { title: "", topic: "", additional: "", blocks: [], comments: [] },
-        { title: "", topic: "", additional: "", blocks: [], comments: [] },
-        { title: "", topic: "", additional: "", blocks: [], comments: [] }
-    ]);
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
+    const {classrooms} = useSelector(state => state.class);
+    const {classroom} = useSelector(state => state.classDetail);
+    console.log(classroom)
+    useEffect(() => {
+        if(!localStorage.getItem("MAZA_BOOK")){
+            navigate("/login")
+        }
+        dispatch(getClassrooms())
+
+    }, []);
+    useEffect(() => {
+        dispatch(getClassroomDetail(classrooms[0]?.id))
+    },[classrooms])
+
+
 
     const classes = [
         { id: 1, name: "Класс A", img: "https://via.placeholder.com/30" },
@@ -18,41 +35,32 @@ const Main = () => {
     ];
 
     const [selectedClass, setSelectedClass] = useState(null);
-    const [selectedLesson, setSelectedLesson] = useState(null);
-    const [newComment, setNewComment] = useState("");
     const [isClassModalVisible, setIsClassModalVisible] = useState(false);
     const [isLessonModalVisible, setIsLessonModalVisible] = useState(false);
     const [newLesson, setNewLesson] = useState({ title: "", topic: "" });
-    const [newClass, setNewClass] = useState({ name: "", image: "" });
+    const [newClass, setNewClass] = useState({ name: "" });
+    useEffect(() => {
+        dispatch(getClassroomDetail(selectedClass))
+    },[selectedClass])
+    const createClass = async () => {
+        if (!newClass.name.length) {
+            notification.error({ message: "Ошибка: введите название класса" });
+            return;
+        }
 
-    // const handleOpenLessonModalBlock = (lesson) => {
-    //     setSelectedLesson(lesson);
-    //     setIsLessonModalVisible(true);
-    // };
-
-    // const handleCloseLessonModalBlock = () => {
-    //     setIsLessonModalVisible(false);
-    //     setSelectedLesson(null);
-    //     setNewComment("");
-    // };
-
-    const handleAddComment = () => {
-        if (newComment) {
-            const updatedLessons = lessons.map(lesson =>
-                lesson === selectedLesson
-                    ? { ...lesson, comments: [...lesson.comments, newComment] }
-                    : lesson
-            );
-            setLessons(updatedLessons);
-            setNewComment(""); // очищаем поле ввода комментария
+        try {
+            const response = await dispatch(createClassroom(newClass.name));
+            if (!response.payload.error) {
+                notification.success({ message: "Класс создан!" });
+            } else {
+                notification.error({ message: response.payload.error });
+            }
+        } catch (error) {
+            console.error("Ошибка при создании класса:", error);
+            notification.error({ message: "Ошибка при создании класса" });
         }
     };
 
-    const handleInputChange = (index, field, value) => {
-        const updatedLessons = [...lessons];
-        updatedLessons[index][field] = value;
-        setLessons(updatedLessons);
-    };
 
     const handleOpenLessonModal = () => {
         setIsLessonModalVisible(true);
@@ -64,7 +72,6 @@ const Main = () => {
     };
 
     const handleAddLesson = () => {
-        setLessons([...lessons, { ...newLesson, blocks: [], comments: [] }]);
         handleCloseLessonModal();
     };
 
@@ -84,28 +91,18 @@ const Main = () => {
 
 
     const handleBlockInputChange = (lessonIndex, blockIndex, value) => {
-        setLessons(prevLessons =>
-            prevLessons.map((lesson, i) =>
-                i === lessonIndex
-                    ? {
-                        ...lesson,
-                        blocks: lesson.blocks.map((block, j) => (j === blockIndex ? value : block))
-                    }
-                    : lesson
-            )
-        );
+
     };
 
-    const handleAddBlock = (lessonIndex) => {
-        setLessons(prevLessons =>
-            prevLessons.map((lesson, i) =>
-                i === lessonIndex
-                    ? { ...lesson, blocks: [...lesson.blocks, ""] }
-                    : lesson
-            )
-        );
-    };
+    const handleAddBlock = async (value) => {
 
+        const responce = await dispatch(postClassroomTaks({classroom_id: value.classroom, column_id:value.id}))
+        dispatch(getClassroomDetail(value.classroom))
+    };
+    const  handlerAddNewColumn = async() => {
+        const responce = await dispatch(postClassroomColumn())
+
+    }
 
     const styles = {
         input: {
@@ -121,7 +118,7 @@ const Main = () => {
                 <h2 style={{ color: 'white' }}>Ваши классы</h2>
                 <hr style={{ borderColor: 'white' }} />
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
-                    {classes.map((cls) => (
+                    {classrooms.map((cls) => (
                         <div
                             key={cls.id}
                             onClick={() => setSelectedClass(cls.id)}
@@ -159,6 +156,12 @@ const Main = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                         <Input placeholder="Поиск" prefix={<SearchOutlined />} style={{ width: 200 }} />
                         <BellOutlined style={{ fontSize: '20px', cursor: 'pointer' }} />
+                        <Button onClick={() => {
+                            dispatch(logout())
+                            navigate("/login")
+                        }}>
+                            Выход
+                        </Button>
                         <Avatar src="/images/profile.jpg" />
                         <SettingOutlined style={{ fontSize: '20px', cursor: 'pointer' }} />
                     </div>
@@ -168,18 +171,24 @@ const Main = () => {
                     <Layout>
                         <Header className="header" style={{ backgroundColor: '#F4F4F4', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                <h2 style={{ margin: 0, fontWeight: 'bold' }}>Название класса</h2>
+                                <h2 style={{ margin: 0, fontWeight: 'bold' }}>{classroom?.name}</h2>
                             </div>
-                            <Avatar.Group maxCount={3} style={{ display: 'flex', gap: '30px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                                 <div>
                                     <a href="#" style={{ color: '#006FFD' }}>Список участников</a>
                                 </div>
-                                <div>
-                                    <Avatar src="/images/user1.jpg" />
-                                    <Avatar src="/images/user2.jpg" />
-                                    <Avatar src="/images/user3.jpg" />
-                                </div>
-                            </Avatar.Group>
+                                <Avatar.Group
+                                    maxCount={3}
+                                    size="large"
+                                    maxStyle={{ backgroundColor: '#000', color: '#fff' }}
+                                >
+                                    {
+                                        classroom?.members?.map((member, index) => (
+                                            <Avatar src="https://randomuser.me/api/portraits/men/1.jpg" />
+                                        ))
+                                    }
+                                </Avatar.Group>
+                            </div>
                         </Header>
 
                         <Content style={{ padding: '20px', backgroundColor: '#F4F4F4' }}>
@@ -187,13 +196,11 @@ const Main = () => {
                             <h2 style={{ fontSize: '24px' }}>Доска</h2>
                             <div>
                                 <div className="lessons-board" style={{ display: "flex", gap: "15px", alignItems: "center", flexWrap: "wrap", flex: 1 }}>
-                                    {lessons.map((lesson, index) => (
+                                    {classroom?.columns?.map((lesson, index) => (
                                         <div key={index} className="lesson" style={{ backgroundColor: "#FFFFFF", padding: "15px", borderRadius: "8px", width: "250px", minHeight: "320px", cursor: "pointer", boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)", display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-                                            <Input placeholder="Название урока" value={lesson.title} onChange={(e) => handleInputChange(index, 'title', e.target.value)} style={styles.input} />
-                                            <Input placeholder="Тема урока" value={lesson.topic} onChange={(e) => handleInputChange(index, 'topic', e.target.value)} style={styles.input} />
-
-                                            {/* Поля блоков */}
-                                            {lesson.blocks.map((block, blockIndex) => (
+                                            <Input placeholder="Название урока" value={lesson.title} style={styles.input} />
+                                            <Input placeholder="Тема урока" value={lesson.topic} style={styles.input} />
+                                            {lesson?.tasks?.map((block, blockIndex) => (
                                                 <Input
                                                     key={blockIndex}
                                                     placeholder={`Дополнительные задания ${blockIndex + 1}`}
@@ -203,7 +210,7 @@ const Main = () => {
                                                 />
                                             ))}
 
-                                            <Button type="text" icon={<PlusOutlined />} onClick={() => handleAddBlock(index)}>Добавить блок</Button>
+                                            <Button type="text" icon={<PlusOutlined />} onClick={() => handleAddBlock(lesson)}>Добавить блок</Button>
                                         </div>
                                     ))}
                                     <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenLessonModal} style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Новый урок</Button>
@@ -233,11 +240,13 @@ const Main = () => {
                 <Button type="primary" onClick={handleAddComment} style={{ marginTop: '10px' }}>Оставить комментарий</Button>
             </Modal> */}
 
-            <Modal visible={isClassModalVisible} onCancel={handleCloseClassModal} onOk={handleAddClass} title="Добавить класс">
-                <Input placeholder="Название класса" value={newClass.name} onChange={(e) => setNewClass({ ...newClass, name: e.target.value })} />
-                <Upload beforeUpload={() => false} onChange={(info) => setNewClass({ ...newClass, image: info.file.name })}>
-                    <Button style={{ margin: '10px 0' }} icon={<UploadOutlined />}>Загрузить фото</Button>
-                </Upload>
+            <Modal visible={isClassModalVisible} onCancel={handleCloseClassModal} footer={false} onOk={handleAddClass} title="Добавить класс">
+                <Input placeholder="Название класса" value={newClass.name} onChange={(e) => setNewClass({ name: e.target.value })} />
+               <div style={{textAlign:"right",marginTop:"20px",}}>
+                   <Button type='primary' onClick={createClass}>
+                       Cоздать
+                   </Button>
+               </div>
             </Modal>
 
             <Modal visible={isLessonModalVisible} onCancel={handleCloseLessonModal} onOk={handleAddLesson} title="Добавить урок">
